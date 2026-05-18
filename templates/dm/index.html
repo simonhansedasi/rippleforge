@@ -1272,7 +1272,7 @@ window.RF = {
         {% if npc.relations %}
         <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;">
           {% for rel in npc.relations %}
-          {% set rname = (npcs | selectattr('id','equalto',rel.target) | map(attribute='name') | first) or (factions | selectattr('id','equalto',rel.target) | map(attribute='name') | first) or rel.target %}
+          {% if rel.target_type == 'party' %}{% set rname = meta.party_name or terms.cast_label or 'The Party' %}{% else %}{% set rname = (npcs | selectattr('id','equalto',rel.target) | map(attribute='name') | first) or (factions | selectattr('id','equalto',rel.target) | map(attribute='name') | first) or rel.target %}{% endif %}
           <div style="display:flex; align-items:center; gap:8px; font-size:0.8rem;">
             <span style="color:{% if rel.relation == 'rival' %}#e05c5c{% else %}#7ec87e{% endif %}; font-weight:700; font-size:0.68rem; text-transform:uppercase; min-width:34px;">{{ rel.relation }}</span>
             <span style="flex:1;">{{ rname }}</span>
@@ -1296,6 +1296,7 @@ window.RF = {
           <input type="hidden" name="ajax" value="1">
           <select name="target_id" required style="{{ inp }} width:auto; flex:1; min-width:120px;"
                   onchange="this.form.target_type.value=this.options[this.selectedIndex].dataset.type">
+            {% if all_party_chars %}<optgroup label="{{ terms.cast_label }}"><option value="_party" data-type="party">{{ meta.party_name or terms.cast_label }} (whole group)</option></optgroup>{% endif %}
             {% if npcs %}<optgroup label="{{ terms.npcs }}">{% for n in npcs %}{% if n.id != npc.id %}<option value="{{ n.id }}" data-type="npc">{{ n.name }}</option>{% endif %}{% endfor %}</optgroup>{% endif %}
             {% if factions %}<optgroup label="{{ terms.factions }}">{% for f in factions %}<option value="{{ f.id }}" data-type="faction">{{ f.name }}</option>{% endfor %}</optgroup>{% endif %}
           </select>

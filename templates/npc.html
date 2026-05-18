@@ -599,7 +599,7 @@ function rfFormalize(srcId, srcType, tgtId, tgtType, rel, rowId) {
     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:5px;">
       <span style="color:var(--muted); font-size:0.72rem; flex-shrink:0;">Ripples to:</span>
       {% for rel in npc.relations %}
-      {% set rname = (world_npcs | selectattr('id','equalto',rel.target) | map(attribute='name') | first) if rel.target_type == 'npc' else (factions | selectattr('id','equalto',rel.target) | map(attribute='name') | first) %}
+      {% if rel.target_type == 'party' %}{% set rname = meta.party_name or terms.cast_label or 'The Party' %}{% elif rel.target_type == 'npc' %}{% set rname = (world_npcs | selectattr('id','equalto',rel.target) | map(attribute='name') | first) %}{% else %}{% set rname = (factions | selectattr('id','equalto',rel.target) | map(attribute='name') | first) %}{% endif %}
       <span style="display:inline-flex; align-items:center; gap:3px; background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:1px 7px; font-size:0.72rem; color:var(--muted);">
         {{ rname or rel.target }}
         <span style="color:{% if rel.relation == 'rival' %}#e05c5c{% else %}#7ec87e{% endif %}; font-size:0.65rem;">({{ rel.relation }})</span>
@@ -647,7 +647,7 @@ function rfFormalize(srcId, srcType, tgtId, tgtType, rel, rowId) {
   {% if npc.relations %}
   <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:10px;">
     {% for rel in npc.relations %}
-    {% set rname = (world_npcs | selectattr('id','equalto',rel.target) | map(attribute='name') | first) if rel.target_type == 'npc' else (factions | selectattr('id','equalto',rel.target) | map(attribute='name') | first) %}
+    {% if rel.target_type == 'party' %}{% set rname = meta.party_name or terms.cast_label or 'The Party' %}{% elif rel.target_type == 'npc' %}{% set rname = (world_npcs | selectattr('id','equalto',rel.target) | map(attribute='name') | first) %}{% else %}{% set rname = (factions | selectattr('id','equalto',rel.target) | map(attribute='name') | first) %}{% endif %}
     <div style="display:flex; align-items:center; gap:8px; font-size:0.82rem; flex-wrap:wrap;">
       <span style="color:{% if rel.relation == 'rival' %}#e05c5c{% else %}#7ec87e{% endif %}; font-weight:700; font-size:0.72rem; text-transform:uppercase;">{{ rel.relation }}</span>
       <span>{{ rname or rel.target }}</span>
@@ -667,13 +667,18 @@ function rfFormalize(srcId, srcType, tgtId, tgtType, rel, rowId) {
       <div style="display:flex; flex-direction:column; gap:3px;">
         <label style="color:var(--muted); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em;">Target</label>
         <select name="target_id" required style="{{ input_style }} min-width:140px;" onchange="this.form.target_type.value=this.options[this.selectedIndex].dataset.type">
+          {% if party %}
+          <optgroup label="{{ terms.cast_label }}">
+            <option value="_party" data-type="party">{{ meta.party_name or terms.cast_label }} (whole group)</option>
+          </optgroup>
+          {% endif %}
           {% if world_npcs %}
           <optgroup label="{{ terms.npcs }}">
             {% for n in world_npcs %}{% if n.id != npc.id %}<option value="{{ n.id }}" data-type="npc">{{ n.name }}</option>{% endif %}{% endfor %}
           </optgroup>
           {% endif %}
           {% if factions %}
-          <optgroup label="Factions">
+          <optgroup label="{{ terms.factions }}">
             {% for f in factions %}<option value="{{ f.id }}" data-type="faction">{{ f.name }}</option>{% endfor %}
           </optgroup>
           {% endif %}
